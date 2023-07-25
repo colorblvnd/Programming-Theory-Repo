@@ -1,20 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
+
+// INHERITANCE (Animal parent class)
 
 public class Animal : MonoBehaviour
 {
-    [SerializeField] private float health;
-    [SerializeField] private float speed;
-    [SerializeField] private float stamina;
-    [SerializeField] private float jumpPower;
-    [SerializeField] private float biteDamage;
+    // ENCAPSULATION (Backing fields, accessor modifiers, setter validation)
 
-    [SerializeField] private string animalName;
+    protected string animalName;
+
+    protected float health;
+    protected float speed;
+    protected float stamina;
+    protected float jumpPower;
+    protected float biteDamage;
+
+    protected List<string> specialAbilities = new List<string>();
+    protected bool ableToJump;
+
     public string AnimalName
     {
         get { return animalName; }
-        set
+        protected set
         {
             if (value.Length < 20)
             {
@@ -23,20 +32,102 @@ public class Animal : MonoBehaviour
         }
     }
 
-    [SerializeField] private Rigidbody rb;
+    public float Health
+    {
+        get { return health; }
+        protected set
+        {
+            if (value >= 0)
+            {
+                health = value;
+            }
+        }
+    }
 
-    public void Bite(Animal other)
+    public float Speed
+    {
+        get { return speed; }
+        protected set
+        {
+            if (value >= 0)
+            {
+                speed = value;
+            }
+        }
+    }
+
+    public float Stamina
+    {
+        get { return stamina; }
+        protected set
+        {
+            if (value >= 0)
+            {
+                stamina = value;
+            }
+        }
+    }
+
+    public float JumpPower
+    {
+        get { return jumpPower; }
+        protected set
+        {
+            if (value >= 0)
+            {
+                jumpPower = value;
+            }
+        }
+    }
+
+    public float BiteDamage
+    {
+        get { return biteDamage; }
+        protected set
+        {
+            if (value >= 0)
+            {
+                biteDamage = value;
+            }
+        }
+    }
+
+
+    [SerializeField] protected Rigidbody rb;
+
+    // ABSTRACTION
+    // POLYMORPHISM (Virtual method to optionally be overridden)
+    public virtual void Bite(Animal other)
     {
         other.RemoveHealth(biteDamage);
     }
 
-    public void RemoveHealth(float biteDamage)
+    public virtual void RemoveHealth(float biteDamage)
     {
         health -= biteDamage;
     }
 
-    public void Jump(float biteDamage)
+    public void Jump()
     {
-        rb.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+        if (ableToJump)
+        {
+            rb.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+            ableToJump = false;
+        }
+    }
+
+    protected virtual void OnMouseDown()
+    {
+        Jump();
+        GameObject.Find("Stats Overlay").gameObject.GetComponent<StatsOverlay>().DisplayStats(this);
+        GameObject.Find("Stats Overlay").gameObject.GetComponent<StatsOverlay>().DisplaySpecialAbilities(specialAbilities);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            ableToJump = true;
+        }
     }
 }
